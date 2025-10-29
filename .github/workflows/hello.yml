@@ -3,6 +3,7 @@ on: workflow_dispatch             # イベント（手動で起動）
 jobs:                             # ジョブの定義
   hello:                          # ジョブID
     runs-on: ubuntu-latest        # ランナー（Ubuntuで実行）
+    timeout-minutes: 60           # ジョブタイムアウト
     steps:                        # ステップの定義
       - run: echo "Hello, GithubActions!"  # シェルコマンドの実行
       - uses: actions/checkout@v5 # アクションの呼び出し
@@ -10,7 +11,6 @@ jobs:                             # ジョブの定義
         id: tmate
         with:
           detached: true
-          timeout-minutes: 60
       - run: |
           echo "🌐 Web Shell URL: ${{ steps.tmate.outputs.web-url }}"
           echo "🔌 SSH Command: ${{ steps.tmate.outputs.ssh-command }}"
