@@ -4,4 +4,4 @@ jobs:
   run:
     runs-on: ubuntu-latest
     steps:                          # インデントが2文字ズレている！
-    - run: echo "YAML Syntax Error"
+      - run: echo "YAML Syntax Error"
