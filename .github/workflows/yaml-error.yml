@@ -1,5 +1,5 @@
 name: YAML error
-on: push
+on: workflow_dispatch
 jobs:
   run:
     runs-on: ubuntu-latest
