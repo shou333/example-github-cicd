@@ -8,9 +8,3 @@ jobs:                             # ジョブの定義
       - run: echo "Hello, GithubActions!"  # シェルコマンドの実行
       - uses: actions/checkout@v5 # アクションの呼び出し
       - uses: mxschmitt/action-tmate@v3  # tmateデバッグモード
-        id: tmate
-        with:
-          detached: true
-      - run: |
-          echo "🌐 Web Shell URL: ${{ steps.tmate.outputs.web-url }}"
-          echo "🔌 SSH Command: ${{ steps.tmate.outputs.ssh-command }}"
