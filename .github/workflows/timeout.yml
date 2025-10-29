@@ -1,5 +1,5 @@
 name: Timeout
-on: push
+on: workflow_dispatch
 jobs:
   sleep:
     runs-on: ubuntu-latest

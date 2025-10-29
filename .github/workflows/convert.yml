@@ -1,5 +1,5 @@
 name: Convert
-on: push
+on: workflow_dispatch
 env:
   TIMEOUT: 1
 jobs:

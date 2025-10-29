@@ -1,5 +1,5 @@
 name: Share job data
-on: push
+on: workflow_dispatch
 jobs:
   before:
     runs-on: ubuntu-latest

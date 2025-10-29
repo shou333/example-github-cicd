@@ -1,5 +1,5 @@
 name: GITHUB_OUTPUT
-on: push
+on: workflow_dispatch
 jobs:
   share:
     runs-on: ubuntu-latest

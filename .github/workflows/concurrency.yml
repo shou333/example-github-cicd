@@ -1,5 +1,5 @@
 name: Concurrency
-on: push
+on: workflow_dispatch
 concurrency: ${{ github.workflow }} # Concurrencyグループへワークフロー名を指定
 jobs:
   sleep:

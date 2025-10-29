@@ -1,5 +1,5 @@
 name: Override environment variables
-on: push
+on: workflow_dispatch
 env:
   EXAMPLE: Defined by workflow level     # ワークフローレベルで環境変数を定義
 jobs:

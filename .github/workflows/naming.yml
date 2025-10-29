@@ -1,5 +1,5 @@
 name: Naming
-on: push
+on: workflow_dispatch
 jobs:
   print:
     name: Super Useful Job   # ジョブ名の指定

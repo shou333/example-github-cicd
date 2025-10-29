@@ -1,5 +1,5 @@
 name: Status check functions
-on: push
+on: workflow_dispatch
 jobs:
   fail:
     runs-on: ubuntu-latest

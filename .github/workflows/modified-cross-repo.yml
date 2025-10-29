@@ -1,5 +1,5 @@
 name: Modified cross repo
-on: push
+on: workflow_dispatch
 env:
   TARGET_REPO: another-repo
 jobs:

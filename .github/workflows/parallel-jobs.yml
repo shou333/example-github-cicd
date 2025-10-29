@@ -1,5 +1,5 @@
 name: Parallel jobs
-on: push
+on: workflow_dispatch
 jobs: # jobsキーへ複数のジョブを定義すれば、並列に実行される
   first:
     runs-on: ubuntu-latest

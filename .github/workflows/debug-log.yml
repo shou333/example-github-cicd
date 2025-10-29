@@ -1,5 +1,5 @@
 name: Debug log
-on: push
+on: workflow_dispatch
 jobs:
   log:
     runs-on: ubuntu-latest

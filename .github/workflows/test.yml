@@ -1,7 +1,5 @@
 name: Test
-on:
-  pull_request:                        # プルリクエストが作成されたら起動
-    paths: ['go/**/*.go']              # ただしGoのファイル変更時のみ
+on: workflow_dispatch                  # 手動で起動
 jobs:
   test:
     runs-on: ubuntu-latest

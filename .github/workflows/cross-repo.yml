@@ -1,5 +1,5 @@
 name: Cross repo
-on: push
+on: workflow_dispatch
 env:
   TARGET_REPO: another-repo # GitHub Appsのインストール時に設定したリポジトリ
 jobs:

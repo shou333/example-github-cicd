@@ -1,9 +1,5 @@
 name: Release
-on:
-  push:
-    tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+'       # v1.2.3のようなGitタグがプッシュされたら起動
-jobs:
+on: workflow_dispatch
   release:
     runs-on: ubuntu-latest
     env:

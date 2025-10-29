@@ -1,5 +1,5 @@
 name: Sequential jobs
-on: push
+on: workflow_dispatch
 jobs:
   first:                   # 依存ジョブがないので最初に実行される
     runs-on: ubuntu-latest

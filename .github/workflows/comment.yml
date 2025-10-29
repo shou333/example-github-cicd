@@ -1,5 +1,5 @@
 name: Comment
-on: pull_request
+on: workflow_dispatch
 jobs:
   comment:
     runs-on: ubuntu-latest

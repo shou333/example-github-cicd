@@ -1,5 +1,5 @@
 name: Auto cancel
-on: pull_request
+on: workflow_dispatch
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true # 同一グループのワークフローが実行中ならキャンセル

@@ -1,5 +1,5 @@
 name: Hash functions
-on: push
+on: workflow_dispatch
 jobs:
   hash:
     runs-on: ubuntu-latest

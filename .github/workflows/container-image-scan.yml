@@ -1,5 +1,5 @@
 name: Container image scan
-on: pull_request
+on: workflow_dispatch
 jobs:
   scan:
     runs-on: ubuntu-latest

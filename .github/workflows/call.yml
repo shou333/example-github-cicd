@@ -1,5 +1,5 @@
 name: Call
-on: pull_request
+on: workflow_dispatch
 jobs:
   call:
     uses: ./.github/workflows/reusable-workflows.yml # Reusable Workflowsの指定

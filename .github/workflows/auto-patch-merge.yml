@@ -1,5 +1,5 @@
 name: Auto patch merge
-on: pull_request
+on: workflow_dispatch
 jobs:
   merge:
     if: ${{ github.actor == 'dependabot[bot]' }}
