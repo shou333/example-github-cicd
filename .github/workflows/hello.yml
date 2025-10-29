@@ -7,4 +7,7 @@ jobs:                             # ジョブの定義
     steps:                        # ステップの定義
       - run: echo "Hello, GithubActions!"  # シェルコマンドの実行
       - uses: actions/checkout@v5 # アクションの呼び出し
-      - uses: mxschmitt/action-tmate@v3  # tmateデバッグモード
+      - name: debug 
+        uses: uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: false
