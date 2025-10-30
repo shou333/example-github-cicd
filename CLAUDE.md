@@ -78,3 +78,4 @@ The publish workflow (publish.yml):
 - Some workflows intentionally contain errors or edge cases for teaching purposes
 - Chapter references in filenames (e.g., コード2.1, コード3.1) correspond to book code listings
 - Environment setup uses GitHub's standard setup actions (setup-go, etc.)
+- 
