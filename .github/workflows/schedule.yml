@@ -1,6 +1,5 @@
 name: Schedule
 on: workflow_dispatch
-  schedule:                # 定期実行イベント
 jobs:
   run:
     runs-on: ubuntu-latest
