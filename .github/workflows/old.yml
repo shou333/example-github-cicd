@@ -4,4 +4,4 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-go@v5 # 古いバージョンの代わりに最新版を使用
+      - uses: actions/setup-go@v4
