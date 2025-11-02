@@ -10,7 +10,7 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v4                      # チェックアウト
+      - uses: actions/checkout@v5                      # チェックアウト
       - uses: aws-actions/configure-aws-credentials@v4 # 一時クレデンシャルの取得
         with:
           role-to-assume: ${{ env.ROLE_ARN }}

@@ -6,13 +6,13 @@ jobs:
   checkout:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4       # スクリプト実行にはチェックアウトが必要
+      - uses: actions/checkout@v5       # スクリプト実行にはチェックアウトが必要
       - id: create
         run: .github/scripts/token.sh   # GitHub Appsトークン生成スクリプトの実行
         env:                            # App IDや秘密鍵は環境変数で渡すことに注意
           APP_ID: ${{ secrets.APP_ID }}
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           repository: ${{ github.repository_owner }}/${{ env.TARGET_REPO }}
           path: ${{ env.TARGET_REPO }}
