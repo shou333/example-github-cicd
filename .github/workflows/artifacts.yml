@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: date > date.txt               # アーティファクトの生成
-      - uses: actions/upload-artifact@v4   # アーティファクトのアップロード
+      - uses: actions/upload-artifact@v5   # アーティファクトのアップロード
         with:
           name: uploaded                   # アーティファクト名
           path: date.txt                   # アップロード対象のパス
