@@ -9,7 +9,7 @@ jobs:
     permissions:
       id-token: write                                  # OIDCトークンの取得を許可
     steps:
-      - uses: aws-actions/configure-aws-credentials@v4 # AWSの認証アクション
+      - uses: aws-actions/configure-aws-credentials@v5 # AWSの認証アクション
         with:
           role-to-assume: ${{ env.ROLE_ARN }}
           role-session-name: ${{ env.SESSION_NAME }}
