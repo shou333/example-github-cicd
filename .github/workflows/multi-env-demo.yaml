@@ -8,115 +8,171 @@ jobs:
     outputs:
       content: ${{ steps.extract.outputs.content }}
     steps:
-      - name: Extract multi-line content
+      - name: Extract multi-line DDL
         id: extract
         run: |
-          # Simulate extracting multi-line content (like DDL extraction)
-          CONTENT="CREATE TABLE user (
-            id BIGINT NOT NULL,
-            name VARCHAR(255) NOT NULL,
-            email VARCHAR(255) NOT NULL,
-            PRIMARY KEY (id)
+          # Simulate extracting DDL from migration files
+          CONTENT="-- V231__CreateEportalToolDeliver
+          CREATE TABLE eportal_tool_deliver (
+            eportal_tool_deliver BINARY(16) NOT NULL,
+            eportal_tool_id INT NOT NULL,
+            directory_id INT NOT NULL,
+            PRIMARY KEY (eportal_tool_deliver, eportal_tool_id, directory_id)
           );
-          CREATE TABLE order_table (
-            order_id BIGINT NOT NULL,
-            user_id BIGINT NOT NULL,
-            amount DECIMAL(10, 2),
-            created_at TIMESTAMP,
-            PRIMARY KEY (order_id),
-            FOREIGN KEY (user_id) REFERENCES user (id)
+          CREATE TABLE offline_wb (
+            offline_wb BINARY(16) NOT NULL,
+            wb_content_id INT NOT NULL
           );"
 
-          # Output using heredoc (GitHub Actions format)
           echo "content<<EOF" >> $GITHUB_OUTPUT
           echo "$CONTENT" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-  demonstrate-issue:
+  real-error-demo:
     needs: extract-content
     if: needs.extract-content.outputs.content != null
     runs-on: ubuntu-latest
 
     steps:
-      - name: Problem - Using environment variable (will fail)
-        env:
-          content: ${{ needs.extract-content.outputs.content }}
+      - name: "❌ REAL ERROR REPRODUCTION - This will show command not found"
+        continue-on-error: true
         run: |
-          echo "=== Attempting to use environment variable ==="
-          echo "${{ env.content }}" > content.txt
-          echo "Result: File created (but with potential parsing issues)"
+          echo "=== REPRODUCING THE EXACT ERROR ==="
           echo ""
-          echo "If bash tries to interpret the content as commands, we'd see:"
-          echo "  command not found: user"
-          echo "  command not found: order_table"
-          echo ""
-          cat content.txt
-          rm -f content.txt
-
-      - name: Solution - Using heredoc (works correctly)
-        run: |
-          echo "=== Using heredoc approach ==="
-          cat << 'EOF' > content.txt
-          ${{ needs.extract-content.outputs.content }}
-          EOF
-          echo "Result: File created successfully with heredoc"
-          echo ""
-          echo "Content of file:"
-          cat content.txt
-          echo ""
-          echo "✓ No parsing errors!"
-          rm -f content.txt
-
-      - name: Detailed comparison
-        run: |
-          echo "=== Detailed Comparison ==="
-          echo ""
-          echo "Problem Approach:"
-          echo "  env:"
-          echo "    content: \${{ needs.extract-content.outputs.content }}"
-          echo "  run: |"
-          echo "    echo \"\${{ env.content }}\" > file.txt"
-          echo ""
-          echo "Issues:"
-          echo "  ❌ Multi-line content can be incorrectly parsed"
-          echo "  ❌ Table/column names may be interpreted as shell commands"
-          echo "  ❌ Can cause 'command not found' errors"
-          echo ""
-          echo "---"
-          echo ""
-          echo "Solution Approach:"
-          echo "  run: |"
-          echo "    cat << 'EOF' > file.txt"
-          echo "    \${{ needs.extract-content.outputs.content }}"
-          echo "    EOF"
-          echo ""
-          echo "Benefits:"
-          echo "  ✅ Content passed directly to cat via heredoc"
-          echo "  ✅ No bash variable expansion issues"
-          echo "  ✅ Preserves exact content, including special characters"
-          echo "  ✅ Safe for any multi-line content"
-
-      - name: Advanced - Demonstration with tricky content
-        run: |
-          echo "=== Handling Tricky Content ==="
+          echo "Creating a script that simulates GitHub Actions temp script generation"
+          echo "When env variables with multi-line content are not properly quoted"
           echo ""
 
-          # Demonstrate with content that includes special characters
-          cat << 'EOF' > result.txt
-          CREATE TABLE special_table (
-            id BIGINT NOT NULL,
-            data VARCHAR(255) NOT NULL COMMENT 'Contains $dollar and $(command)',
-            amount DECIMAL(10, 2) DEFAULT 0.00,
-            tags JSON,
-            PRIMARY KEY (id)
+          # Create the problematic script
+          cat > /tmp/problematic_ga_script.sh << 'BADSCRIPT'
+          #!/bin/bash
+          set -e
+
+          # This is what GitHub Actions does when you have:
+          # env:
+          #   sql: ${{ needs.extract-content.outputs.content }}
+          #
+          # If the content isn't properly quoted, it creates a script like this:
+
+          sql=-- V231__CreateEportalToolDeliver
+          CREATE TABLE eportal_tool_deliver (
+            eportal_tool_deliver BINARY(16) NOT NULL,
+            eportal_tool_id INT NOT NULL,
+            directory_id INT NOT NULL,
+            PRIMARY KEY (eportal_tool_deliver, eportal_tool_id, directory_id)
+          );
+          CREATE TABLE offline_wb (
+            offline_wb BINARY(16) NOT NULL,
+            wb_content_id INT NOT NULL
+          );
+
+          # Then the workflow tries to use it:
+          echo "This line will never execute"
+          BADSCRIPT
+
+          echo "Generated problematic script:"
+          cat /tmp/problematic_ga_script.sh
+          echo ""
+          echo "Executing it..."
+          echo ""
+
+          bash /tmp/problematic_ga_script.sh 2>&1 || echo ""
+
+      - name: "✅ SOLUTION - Direct heredoc usage (no environment variable)"
+        run: |
+          echo ""
+          echo "=== CORRECT APPROACH: USING HEREDOC ==="
+          echo ""
+
+          # The solution: don't use env variables for multi-line content
+          # Instead, use heredoc directly with the output
+
+          echo "Approach 1: Direct heredoc with command output"
+          cat << 'EOF'
+          -- V231__CreateEportalToolDeliver
+          CREATE TABLE eportal_tool_deliver (
+            eportal_tool_deliver BINARY(16) NOT NULL,
+            eportal_tool_id INT NOT NULL,
+            directory_id INT NOT NULL,
+            PRIMARY KEY (eportal_tool_deliver, eportal_tool_id, directory_id)
+          );
+          CREATE TABLE offline_wb (
+            offline_wb BINARY(16) NOT NULL,
+            wb_content_id INT NOT NULL
           );
           EOF
 
-          echo "Successfully handled content with:"
-          echo "  - Dollar signs ($)"
-          echo "  - Command substitution syntax \$()"
-          echo "  - Special characters"
           echo ""
-          echo "Content:"
-          cat result.txt
-          rm -f result.txt
+          echo "✅ SUCCESS - No 'command not found' errors!"
+
+      - name: "✅ SOLUTION - Using job output with heredoc"
+        run: |
+          echo ""
+          echo "=== RECOMMENDED: Job output with heredoc ==="
+          echo ""
+
+          # Instead of:
+          # env:
+          #   content: ${{ needs.extract-content.outputs.content }}
+          # run: |
+          #   echo "${{ env.content }}" > file.sql
+
+          # Use this:
+          cat << 'EOF' > /tmp/output.sql
+          ${{ needs.extract-content.outputs.content }}
+          EOF
+
+          echo "Generated SQL file:"
+          cat /tmp/output.sql
+
+          echo ""
+          echo "✅ SUCCESS - Multi-line content safely handled!"
+          rm /tmp/output.sql
+
+      - name: "📊 Detailed Analysis"
+        run: |
+          echo ""
+          echo "========================================="
+          echo "WHY THE ERROR HAPPENS"
+          echo "========================================="
+          echo ""
+          echo "PROBLEM WORKFLOW:"
+          echo "───────────────"
+          echo ""
+          echo "check-migration:"
+          echo "  needs: extract-content"
+          echo "  env:"
+          echo "    sql: \${{ needs.extract-content.outputs.content }}  ⚠️ Multi-line!"
+          echo "  run: |"
+          echo "    echo \"\${{ env.sql }}\" > query.sql"
+          echo "    mysql ... < query.sql"
+          echo ""
+          echo "What happens:"
+          echo "  1. GitHub Actions receives multi-line output from extract-content"
+          echo "  2. GitHub Actions tries to set it as an environment variable"
+          echo "  3. Generates a temporary script like:"
+          echo ""
+          echo "     sql=CREATE TABLE eportal_tool_deliver ("
+          echo "       eportal_tool_deliver BINARY(16),"
+          echo "       ..."
+          echo "     );"
+          echo ""
+          echo "  4. Bash sees this as: ASSIGN sql=CREATE, then execute TABLE, then execute eportal_tool_deliver"
+          echo "  5. Result: 'command not found: eportal_tool_deliver'"
+          echo ""
+          echo ""
+          echo "CORRECT APPROACH:"
+          echo "────────────────"
+          echo ""
+          echo "run: |"
+          echo "  mysql << 'EOF'"
+          echo "  \${{ needs.extract-content.outputs.content }}"
+          echo "  EOF"
+          echo ""
+          echo "Why it works:"
+          echo "  1. Heredoc passes content directly to command's stdin"
+          echo "  2. No environment variable intermediate step"
+          echo "  3. No bash parsing of the content"
+          echo "  4. Table names treated as literal text, never as commands"
+          echo "  5. ✅ No 'command not found' errors!"
+          echo ""
