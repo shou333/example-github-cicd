@@ -8,64 +8,145 @@ jobs:
     outputs:
       content: ${{ steps.extract.outputs.content }}
     steps:
-      - name: Extract multi-line content
+      - name: Extract multi-line DDL content
         id: extract
         run: |
           CONTENT="CREATE TABLE eportal_tool_deliver (
             eportal_tool_deliver BINARY(16) NOT NULL,
             eportal_tool_id INT NOT NULL,
-            directory_id INT NOT NULL
+            directory_id INT NOT NULL,
+            PRIMARY KEY (eportal_tool_deliver, eportal_tool_id, directory_id)
           );
           CREATE TABLE offline_wb (
             offline_wb BINARY(16) NOT NULL,
-            wb_content_id INT NOT NULL
+            wb_content_id INT NOT NULL,
+            created_at TIMESTAMP
           );"
 
           echo "content<<EOF" >> $GITHUB_OUTPUT
           echo "$CONTENT" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-  demonstrate-issue:
+  demonstrate-problem-and-solution:
     needs: extract-content
     if: needs.extract-content.outputs.content != null
     runs-on: ubuntu-latest
+
     steps:
-      - name: Problem Approach
-        env:
-          sql_content: ${{ needs.extract-content.outputs.content }}
+      - name: "❌ PROBLEMATIC APPROACH - Using env variable"
+        continue-on-error: true
         run: |
-          echo "=== Problem: Using environment variable ==="
+          echo "========================================="
+          echo "PROBLEMATIC: Using environment variable"
+          echo "========================================="
           echo ""
-          echo "When you set multi-line content as env variable:"
+          echo "Workflow configuration:"
           echo "  env:"
-          echo "    sql: \${{ needs.extract-content.outputs.content }}"
+          echo "    sql_content: \${{ needs.extract-content.outputs.content }}"
+          echo "  run: |"
+          echo "    echo \"\${{ env.sql_content }}\" > query.sql"
+          echo "    mysql ... < query.sql"
           echo ""
-          echo "And use it like this:"
-          echo "  echo \"\${{ env.sql }}\" > query.sql"
+          echo "What GitHub Actions does internally:"
+          echo "  Generates a temp script like:"
+          echo "    sql_content=CREATE TABLE eportal_tool_deliver ("
+          echo "      eportal_tool_deliver BINARY(16) NOT NULL,"
+          echo "      ..."
           echo ""
-          echo "The content might be mishandled in some scenarios."
+          echo "This causes: syntax error near unexpected token '('"
           echo ""
-          echo "File created:"
-          echo "${{ env.sql_content }}" > /tmp/problem.sql
-          wc -l /tmp/problem.sql
+          echo "Attempting this approach now..."
           echo ""
 
-      - name: Solution Approach
+          # This will fail with syntax error
+          export sql_content=${{ needs.extract-content.outputs.content }}
+          echo "$sql_content" > /tmp/query.sql 2>&1 || echo "✗ Failed as expected"
+
+      - name: "✅ CORRECT APPROACH - Using heredoc"
         run: |
           echo ""
-          echo "=== Solution: Using heredoc ==="
+          echo "========================================="
+          echo "CORRECT: Using heredoc syntax"
+          echo "========================================="
           echo ""
-          echo "Use heredoc to pass content directly without env variable:"
+          echo "Workflow configuration:"
+          echo "  run: |"
+          echo "    mysql << 'EOF'"
+          echo "    \${{ needs.extract-content.outputs.content }}"
+          echo "    EOF"
+          echo ""
+          echo "Why this works:"
+          echo "  ✓ No environment variable intermediate step"
+          echo "  ✓ Content passed directly to command stdin"
+          echo "  ✓ No bash parsing of the content"
+          echo "  ✓ No syntax errors"
+          echo ""
+          echo "Demonstrating this approach:"
           echo ""
 
-          cat << 'EOF' > /tmp/solution.sql
+          # This works correctly
+          cat << 'SQLEOF' > /tmp/query.sql
           ${{ needs.extract-content.outputs.content }}
-          EOF
+          SQLEOF
 
-          echo "File created:"
-          wc -l /tmp/solution.sql
+          echo "✓ Successfully created file:"
+          ls -lh /tmp/query.sql
           echo ""
-          echo "✓ Content passed safely without environment variable issues"
+          echo "File contents:"
+          cat /tmp/query.sql
           echo ""
-          echo "File content:"
-          cat /tmp/solution.sql
+          echo "✓ Perfect - no errors!"
+
+      - name: "📊 ROOT CAUSE ANALYSIS"
+        run: |
+          echo ""
+          echo "========================================="
+          echo "ROOT CAUSE: How GitHub Actions handles env vars"
+          echo "========================================="
+          echo ""
+          echo "When you use:"
+          echo "  env:"
+          echo "    content: \${{ needs.extract-content.outputs.content }}"
+          echo ""
+          echo "GitHub Actions generates a temporary bash script:"
+          echo ""
+          echo "  #!/bin/bash"
+          echo "  set -e"
+          echo "  export content='CREATE TABLE eportal_tool_deliver ("
+          echo "    eportal_tool_deliver BINARY(16) NOT NULL,"
+          echo "    eportal_tool_id INT NOT NULL,"
+          echo "    directory_id INT NOT NULL,"
+          echo "    PRIMARY KEY (eportal_tool_deliver, eportal_tool_id, directory_id)"
+          echo "  );'"
+          echo ""
+          echo "BUT if not properly quoted, it becomes:"
+          echo ""
+          echo "  #!/bin/bash"
+          echo "  set -e"
+          echo "  export content=CREATE TABLE eportal_tool_deliver ("
+          echo "    eportal_tool_deliver BINARY(16) NOT NULL,"
+          echo ""
+          echo "This causes bash to parse:"
+          echo "  - 'export content=CREATE' → set variable"
+          echo "  - 'TABLE' → undefined command"
+          echo "  - 'eportal_tool_deliver' → undefined command"
+          echo "  - '(' → syntax error"
+          echo ""
+          echo "Result: syntax error near unexpected token '('"
+          echo ""
+          echo "========================================="
+          echo "SOLUTION: Use heredoc instead"
+          echo "========================================="
+          echo ""
+          echo "Heredoc passes content directly to stdin:"
+          echo ""
+          echo "  cat << 'EOF' > query.sql"
+          echo "  \${{ needs.extract-content.outputs.content }}"
+          echo "  EOF"
+          echo ""
+          echo "This way:"
+          echo "  ✓ No variable expansion"
+          echo "  ✓ No bash parsing"
+          echo "  ✓ Content is literal text"
+          echo "  ✓ All special characters preserved"
+          echo ""
