@@ -1,6 +1,7 @@
 name: Multi-line Environment Variable Issue Demo
 
-on: workflow_dispatch
+on:
+  push: workflow_dispatch
 
 jobs:
   extract-content:
