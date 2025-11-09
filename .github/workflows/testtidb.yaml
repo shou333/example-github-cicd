@@ -1,0 +1,91 @@
+name: Migration DDL Check (TiDB)
+
+on: work_dispatch
+
+permissions:
+  contents: write
+  pull-requests: write
+  packages: read
+
+
+jobs:
+  detect-ddl:
+    runs-on: ubuntu-latest
+    outputs:
+      ddl: ${{ steps.extract-ddl.outputs.ddl }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Extract DDL from migration files
+        id: extract-ddl
+        run: |
+          DDL=$(extract_ddl "${{ env.migration_dir }}" 230)
+          echo "DDL:"
+          echo "$DDL"
+
+          echo "ddl<<EOF" >> $GITHUB_OUTPUT
+          echo "$DDL" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+  check-migration:
+    needs: detect-ddl
+    if: needs.detect-ddl.outputs.ddl != null
+    env:
+      ddl: ${{ needs.detect-ddl.outputs.ddl }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Install MySQL Client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mysql-client
+
+      - name: Install TiUP and start TiDB Playground
+        run: |
+          # TiUPのインストール
+          curl --proto '=https' --tlsv1.2 -sSf https://tiup-mirrors.pingcap.com/install.sh | sh
+          # TiDB Playground起動（最小構成）
+          ~/.tiup/bin/tiup playground v8.5.2 --mode tikv-slim --db 1 --pd 1 --kv 1 > tidb.log 2>&1 &
+
+          # 起動待機（最大240秒）
+          echo "Waiting for TiDB to start..."
+          for i in {1..240}; do
+            if mysql -h 127.0.0.1 -P 4000 -u root -e "SELECT 1" > /dev/null 2>&1; then
+              echo "TiDB is ready!"
+              break
+            fi
+            echo "Waiting... ($i/240)"
+            sleep 1
+          done
+
+          # バージョン確認
+          mysql -h 127.0.0.1 -P 4000 -u root -e "SELECT VERSION();"
+
+      - name: Setup TiDB Server
+        run: |
+          mysql -h 127.0.0.1 -P 4000 -u root -e "SET @@GLOBAL.character_set_server = 'utf8mb4';"
+          mysql -h 127.0.0.1 -P 4000 -u root -e "SET @@GLOBAL.collation_server = 'utf8mb4_general_ci';"
+          mysql -h 127.0.0.1 -P 4000 -u root -e "SET default_collation_for_utf8mb4=utf8mb4_general_ci;"
+          mysql -h 127.0.0.1 -P 4000 -u root -e "CREATE USER 'origin_dev'@'%' IDENTIFIED BY 'origin_dev';"
+          mysql -h 127.0.0.1 -P 4000 -u root -e "GRANT ALL PRIVILEGES ON *.* TO 'origin_dev'@'%' WITH GRANT OPTION;"
+
+      - name: Create base schema
+        run: |
+          mysql -h 127.0.0.1 -P 4000 -u origin_dev -porigin_dev < .circleci/files/ddlcheckbase.sql
+  
+      - name: Test DDL on TiDB
+        run: |
+          echo "${{ env.ddl }}" > ddl.txt
+          mysql -h 127.0.0.1 -P 4000 -u origin_dev -porigin_dev contract_ddlcheck < ddl.txt
+          rm -f ./ddl.txt
+
+      - name: Show TiDB logs on failure
+        if: failure()
+        run: |
+          echo "=== TiDB Playground Logs ==="
+          cat tidb.log || echo "No logs found"
