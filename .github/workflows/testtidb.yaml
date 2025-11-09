@@ -21,7 +21,12 @@ jobs:
       - name: Extract DDL from migration files
         id: extract-ddl
         run: |
-          DDL=$'CREATE TABLE IF NOT EXISTS users (\n  id BIGINT PRIMARY KEY,\n  name VARCHAR(255) NOT NULL,\n  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);'
+          DDL=$(cat <<'SQL'
+-- V231__CreateEportalToolDeliver_NO_MAINTENANCE
+
+CREATE TABLE `eportal_tool_deliver` ( `eportal_tool_id` BINARY(16) NOT NULL COMMENT 'ツールID', `directory_id` INT NOT NULL COMMENT '組織ID', `grade_type` ENUM('ALL', 'P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'J1', 'J2', 'J3', 'SpecialSupport', 'Other') NOT NULL COMMENT '学年種別', PRIMARY KEY (`eportal_tool_id`, `directory_id`, `grade_type`), KEY `eportal_tool_deliver_idx_01` (`directory_id`), CONSTRAINT `eportal_tool_deliver_fk_01` FOREIGN KEY (`eportal_tool_id`) REFERENCES `eportal_tool` (`id`) ON DELETE CASCADE, CONSTRAINT `eportal_tool_deliver_fk_02` FOREIGN KEY (`directory_id`) REFERENCES `directory` (`id`) ON DELETE CASCADE ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='ツール配信';
+SQL
+)
           echo "DDL:"
           echo "$DDL"
 
