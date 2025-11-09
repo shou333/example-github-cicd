@@ -77,7 +77,11 @@ jobs:
 
       - name: Test DDL on TiDB
         run: |
-          echo "${{ env.ddl }}" > ddl.txt
+          #echo "${{ env.ddl }}" > ddl.txt
+          #cat ddl.txt
+          cat > ddl.txt <<'SQL'
+${{ env.ddl }}
+SQL
           cat ddl.txt
           mysql -h 127.0.0.1 -P 4000 -u origin_dev -porigin_dev contract_ddlcheck < ddl.txt
           rm -f ./ddl.txt
