@@ -73,11 +73,12 @@ jobs:
           mysql -h 127.0.0.1 -P 4000 -u root -e "SET default_collation_for_utf8mb4=utf8mb4_general_ci;"
           mysql -h 127.0.0.1 -P 4000 -u root -e "CREATE USER 'origin_dev'@'%' IDENTIFIED BY 'origin_dev';"
           mysql -h 127.0.0.1 -P 4000 -u root -e "GRANT ALL PRIVILEGES ON *.* TO 'origin_dev'@'%' WITH GRANT OPTION;"
-          mysql -h 127.0.0.1 -P 4000 -u root -e "CREATE DATABASE ddlcheck;"
+          mysql -h 127.0.0.1 -P 4000 -u root -e "CREATE DATABASE contract_ddlcheck;"
 
       - name: Test DDL on TiDB
         run: |
           echo "${{ env.ddl }}" > ddl.txt
+          cat ddl.txt
           mysql -h 127.0.0.1 -P 4000 -u origin_dev -porigin_dev contract_ddlcheck < ddl.txt
           rm -f ./ddl.txt
 
