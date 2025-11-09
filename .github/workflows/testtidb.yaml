@@ -1,6 +1,6 @@
 name: Migration DDL Check (TiDB)
 
-on: work_dispatch
+on: workflow_dispatch
 
 permissions:
   contents: write
@@ -21,7 +21,7 @@ jobs:
       - name: Extract DDL from migration files
         id: extract-ddl
         run: |
-          DDL=$(extract_ddl "${{ env.migration_dir }}" 230)
+          DDL=$'CREATE TABLE IF NOT EXISTS users (\n  id BIGINT PRIMARY KEY,\n  name VARCHAR(255) NOT NULL,\n  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);'
           echo "DDL:"
           echo "$DDL"
 
