@@ -9,7 +9,7 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Setup         # テストの準備
         run: date > foo.md
       - name: Exercise      # テスト対象コードの実行

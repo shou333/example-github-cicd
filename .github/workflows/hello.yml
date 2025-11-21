@@ -6,7 +6,7 @@ jobs:                             # ジョブの定義
     timeout-minutes: 60           # ジョブタイムアウト
     steps:                        # ステップの定義
       - run: echo "Hello, GithubActions!"  # シェルコマンドの実行
-      - uses: actions/checkout@v5 # アクションの呼び出し
+      - uses: actions/checkout@v6 # アクションの呼び出し
       - name: debug 
         uses: mxschmitt/action-tmate@v3
         with:

@@ -4,7 +4,7 @@ jobs:
   debug:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5     # ローカルアクション呼び出し前にチェックアウト
+      - uses: actions/checkout@v6     # ローカルアクション呼び出し前にチェックアウト
       - uses: ./.github/actions/dump/ # ローカルアクションの呼び出し
         id: dump                      # 出力値参照のためステップIDを定義
         with:
