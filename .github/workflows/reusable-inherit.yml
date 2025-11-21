@@ -9,7 +9,7 @@ jobs:
   inherit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - id: pr-comment
         run: |
           echo "${TOKEN:0:1} ${TOKEN#?}"

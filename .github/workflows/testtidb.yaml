@@ -14,7 +14,7 @@ jobs:
     outputs:
       ddl: ${{ steps.extract-ddl.outputs.ddl }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -36,7 +36,7 @@ jobs:
       ddl: ${{ needs.detect-ddl.outputs.ddl }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
